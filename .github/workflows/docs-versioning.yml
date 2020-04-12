@@ -34,7 +34,7 @@ jobs:
           make buildnext
           cd docs
           yarn build
-          yarn export
+          yarn export -o out/${GITHUB_REF##*/}
 
       - name: Deploy
         uses: s0/git-publish-subdir-action@v2.2.0
