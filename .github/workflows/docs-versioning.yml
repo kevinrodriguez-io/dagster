@@ -1,0 +1,50 @@
+name: Docs Versioning
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+
+      - name: Install Pandoc
+        run: sudo apt-get install -yqq --no-install-recommends pandoc
+
+      - name: Install Python dependencies
+        run: make install_dev_python_modules_verbose
+
+      - name: Build docs
+        run: |
+          cd docs
+          make buildnext
+          cd docs
+          yarn build
+          yarn export
+
+      - name: Deploy
+        uses: s0/git-publish-subdir-action@v2.2.0
+        env:
+          REPO: git@github.com:kevinrodriguez-io/dagster-docs-site.git
+          BRANCH: master
+          FOLDER: ./docs/next/out
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+
+      # - name: Deploy to surge
+      #   run: |
+      #     npm install -g surge
+      #     surge ./docs/next/out ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
